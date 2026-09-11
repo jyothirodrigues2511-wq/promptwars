@@ -3,7 +3,7 @@ const supplyDepots = require('../data/supplyDepots');
 const { hasLLMBackend } = require('./geminiService');
 
 const URGENCY_KEYWORDS = {
-  critical: ['trapped', 'collapse', 'collapse', 'bleed', 'bleeding', 'unconscious', 'fire', 'drowning', 'flood', 'heart', 'breath', 'death', 'dying', 'rubble'],
+  critical: ['trapped', 'collapse', 'collapse', 'bleed', 'bleeding', 'unconscious', 'fire', 'drowning', 'flood', 'heart', 'breath', 'death', 'dying', 'died', 'dead', 'fatality', 'killed', 'rubble'],
   high: ['rescue', 'help', 'injured', 'hurt', 'wound', 'broken', 'trapped', 'stuck', 'screaming', 'lost', 'children', 'kidnapp'],
   moderate: ['food', 'water', 'hungry', 'cold', 'blanket', 'shelter', 'supplies'],
 };
@@ -20,6 +20,7 @@ function detectIntent(text) {
   const lower = String(text || '').toLowerCase();
   const rules = [
     [/trapped|collapse|rubble|rescue|buried/i, 'rescue people trapped under debris'],
+    [/died|\bdead\b|fatality|killed|death|\bdying\b|deceased|body/i, 'reporting a fatality — casualty recovery needed'],
     [/bleed|wound|hurt|injur|medical|sick|unconscious/i, 'requesting emergency medical assistance'],
     [/fire|smoke/i, 'reporting fire and requesting firefighting assistance'],
     [/flood|water.*rising|drown/i, 'reporting flooding and requesting evacuation support'],
