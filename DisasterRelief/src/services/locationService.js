@@ -44,9 +44,15 @@ Extract the best-estimate location and return structured JSON with:
 
 If no location can be determined at all, use 0, 0 and confidence 0.`;
 
-  const result = await generateStructuredJSON(prompt, LOCATION_SCHEMA);
-  const loc = JSON.parse(result);
-  return loc;
+  let loc;
+  try {
+    const result = await generateStructuredJSON(prompt, LOCATION_SCHEMA);
+    loc = JSON.parse(result);
+  } catch (err) {
+    console.warn('LLM geocoding unavailable, using offline heuristics:', err.message);
+    loc = locateFallback(text);
+  }
+  return loc || locateFallback(text);
 }
 
 module.exports = { extractLocationFromText, LOCATION_SCHEMA, isValidCoords };

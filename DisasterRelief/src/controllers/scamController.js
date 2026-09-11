@@ -61,8 +61,14 @@ Return structured JSON with:
 - reasoning: detailed explanation of your assessment
 - risk_factors: array of specific concerns identified (empty array for genuine reports)`;
 
-    const result = await generateStructuredJSON(prompt, scamSchema);
-    res.json(JSON.parse(result));
+    let result;
+    try {
+      result = JSON.parse(await generateStructuredJSON(prompt, scamSchema));
+    } catch (err) {
+      console.warn('LLM scam filter unavailable, using offline heuristics:', err.message);
+      result = scamFallback(text, reportsToAnalyze);
+    }
+    res.json(result);
   } catch (err) {
     console.error('Scam filter error:', err);
     res.status(500).json({ error: 'Scam verification failed.', detail: err.message });

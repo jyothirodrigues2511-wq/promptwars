@@ -25,10 +25,15 @@ async function analyzeDroneImage(req, res) {
       imageBase64 = req.file.buffer.toString('base64');
       mimeType = req.file.mimetype;
     } else if (req.body.image_url) {
-      const response = await fetch(req.body.image_url);
-      const buffer = Buffer.from(await response.arrayBuffer());
-      imageBase64 = buffer.toString('base64');
-      mimeType = response.headers.get('content-type') || 'image/jpeg';
+      try {
+        const response = await fetch(req.body.image_url);
+        const buffer = Buffer.from(await response.arrayBuffer());
+        imageBase64 = buffer.toString('base64');
+        mimeType = response.headers.get('content-type') || 'image/jpeg';
+      } catch (err) {
+        console.warn('Image URL fetch failed, falling back to offline analysis:', err.message);
+        return res.json(droneFallback());
+      }
     } else {
       return res.status(400).json({ error: 'Upload an image file or provide an image_url.' });
     }
@@ -54,8 +59,14 @@ Return structured JSON with:
 - survivors_detected: boolean
 - summary: brief situational overview for dispatchers`;
 
-    const result = await generateWithImage(prompt, imageBase64, mimeType);
-    res.json(JSON.parse(result));
+    let result;
+    try {
+      result = JSON.parse(await generateWithImage(prompt, imageBase64, mimeType));
+    } catch (err) {
+      console.warn('LLM drone analysis unavailable, using offline fallback:', err.message);
+      result = droneFallback();
+    }
+    res.json(result);
   } catch (err) {
     console.error('Drone analysis error:', err);
     res.status(500).json({ error: 'Drone image analysis failed.', detail: err.message });

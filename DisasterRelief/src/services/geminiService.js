@@ -6,6 +6,7 @@ const OLLAMA_BASE_URL = (process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5';
 const OPENAI_BASE_URL = (process.env.OPENAI_BASE_URL || '').replace(/\/+$/, '');
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS) || 5000;
 
 function activeProvider() {
   if (LLM_PROVIDER === 'gemini' || LLM_PROVIDER === 'ollama' || LLM_PROVIDER === 'openai') return LLM_PROVIDER;
@@ -37,7 +38,7 @@ function chatModel(provider) {
   return provider === 'ollama' ? OLLAMA_MODEL : OPENAI_MODEL;
 }
 
-async function openAIChat({ provider, system, userContent, useJson = false, imageParts = null, timeoutMs = 180000 }) {
+async function openAIChat({ provider, system, userContent, useJson = false, imageParts = null, timeoutMs = AI_TIMEOUT_MS }) {
   const messages = [];
   if (system) messages.push({ role: 'system', content: system });
 
@@ -100,6 +101,13 @@ function cleanJSONText(text) {
 
 const GEMINI_JSON_HEADER = 'Respond with ONLY valid JSON matching the requested schema. Do not include markdown, commentary, or code fences.';
 
+function timed(promiseLike, ms = AI_TIMEOUT_MS, label = 'AI request') {
+  return Promise.race([
+    Promise.resolve(promiseLike),
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)),
+  ]);
+}
+
 async function generateStructuredJSON(prompt, schema, imageParts = null) {
   const provider = activeProvider();
 
@@ -115,11 +123,15 @@ async function generateStructuredJSON(prompt, schema, imageParts = null) {
     } else {
       contents.push(prompt);
     }
-    const response = await genai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents,
-      config,
-    });
+    const response = await timed(
+      genai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents,
+        config,
+      }),
+      AI_TIMEOUT_MS,
+      'Gemini JSON API'
+    );
     return cleanJSONText(response.text);
   }
 
@@ -143,10 +155,14 @@ async function generateWithImage(prompt, imageBase64, mimeType = 'image/jpeg') {
 
   if (provider === 'gemini') {
     const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const response = await genai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: [imagePart, prompt],
-    });
+    const response = await timed(
+      genai.models.generateContent({
+        model: GEMINI_MODEL,
+        contents: [imagePart, prompt],
+      }),
+      AI_TIMEOUT_MS,
+      'Gemini vision API'
+    );
     return response.text;
   }
 
@@ -168,10 +184,14 @@ async function generateWithAudio(prompt, audioBase64, mimeType = 'audio/webm') {
   }
   const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   const audioPart = { inlineData: { data: audioBase64, mimeType } };
-  const response = await genai.models.generateContent({
-    model: GEMINI_MODEL,
-    contents: [audioPart, prompt],
-  });
+  const response = await timed(
+    genai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: [audioPart, prompt],
+    }),
+    AI_TIMEOUT_MS,
+    'Gemini audio API'
+  );
   return response.text;
 }
 
@@ -188,4 +208,5 @@ module.exports = {
   OLLAMA_MODEL,
   OPENAI_BASE_URL,
   OPENAI_MODEL,
+  AI_TIMEOUT_MS,
 };

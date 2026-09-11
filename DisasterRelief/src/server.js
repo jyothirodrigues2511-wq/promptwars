@@ -34,6 +34,10 @@ app.get('*', (_req, res) => {
 
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`DisasterRelief server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`DisasterRelief server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

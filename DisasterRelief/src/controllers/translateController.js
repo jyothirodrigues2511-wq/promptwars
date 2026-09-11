@@ -59,8 +59,14 @@ Return a structured JSON with:
   If the message contains no usable place reference, use confidence 0 with latitude/longitude as 0.
   If the place is clearly outside the greater Seattle area (e.g. "Bengaluru", "Dandeli"), still return its real coordinates.`;
 
-    const result = await generateStructuredJSON(prompt, translateSchema);
-    res.json(JSON.parse(result));
+    let result;
+    try {
+      result = JSON.parse(await generateStructuredJSON(prompt, translateSchema));
+    } catch (err) {
+      console.warn('LLM translation unavailable, using offline heuristics:', err.message);
+      result = translateFallback(text);
+    }
+    res.json(result);
   } catch (err) {
     console.error('Translation error:', err);
     res.status(500).json({ error: 'Translation failed.', detail: err.message });
@@ -95,8 +101,17 @@ Return a structured JSON with:
 - key_intent: the core request or report (e.g., "need medical help", "building collapsed", "requesting food")
 - detected_urgency: one of "critical", "high", "moderate", "low"`;
 
-    const result = await generateWithAudio(prompt, audioBase64, mimeType);
-    res.json(JSON.parse(result));
+    let result;
+    try {
+      result = JSON.parse(await generateWithAudio(prompt, audioBase64, mimeType));
+    } catch (err) {
+      console.warn('Audio transcription unavailable, returning offline response:', err.message);
+      return res.status(502).json({
+        error: 'Audio transcription is unavailable right now.',
+        detail: 'Voice-note transcription (speech-to-text) requires a working Gemini backend. The AI service is offline. Use a text report instead.',
+      });
+    }
+    res.json(result);
   } catch (err) {
     console.error('Audio translation error:', err);
     res.status(500).json({ error: 'Audio translation failed.', detail: err.message });

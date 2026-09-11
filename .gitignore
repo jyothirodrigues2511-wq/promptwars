@@ -56,6 +56,13 @@ venv.bak/
 *.keystore
 
 # -------------------------------
+# Node / Vercel / dependencies
+# -------------------------------
+node_modules
+.vercel
+public/uploads
+
+# -------------------------------
 # Generated / media artifacts
 # -------------------------------
 *.wav

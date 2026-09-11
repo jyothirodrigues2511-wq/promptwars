@@ -54,12 +54,24 @@ Return structured JSON with:
 - required_medical_supplies: array of specific supplies needed`;
 
     let result;
-    if (imageBase64) {
-      result = await generateWithImage(prompt, imageBase64, mimeType);
-    } else {
-      result = await generateStructuredJSON(prompt, triageSchema);
+    try {
+      if (imageBase64) {
+        result = await generateWithImage(prompt, imageBase64, mimeType);
+      } else {
+        result = await generateStructuredJSON(prompt, triageSchema);
+      }
+      result = JSON.parse(result);
+    } catch (err) {
+      console.warn('LLM triage unavailable, using offline heuristics:', err.message);
+      if (imageBase64) {
+        return res.status(502).json({
+          error: 'Medical image analysis is unavailable right now.',
+          detail: 'Image triage requires a working Gemini vision backend, which is offline. Use a text description instead.',
+        });
+      }
+      result = triageTextFallback(text);
     }
-    res.json(JSON.parse(result));
+    res.json(result);
   } catch (err) {
     console.error('Triage error:', err);
     res.status(500).json({ error: 'Triage analysis failed.', detail: err.message });
