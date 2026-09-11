@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DisasterRelief — AI Crisis Command</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🛟</span>
+      <div>
+        <h1>DisasterRelief</h1>
+        <p class="tagline">AI-Powered Crisis Management Platform</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button id="themeToggle" class="btn ghost" type="button" aria-label="Toggle light/dark theme">🌙</button>
+      <div class="status-pill" id="apiStatus">● Checking API…</div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel intake">
+      <h2>📥 Incident Intake</h2>
+
+      <div class="tabs">
+        <button class="tab active" data-type="text">Text</button>
+        <button class="tab" data-type="audio">Voice Note</button>
+        <button class="tab" data-type="drone">Drone/Satellite</button>
+        <button class="tab" data-type="medical">Medical Photo</button>
+      </div>
+
+      <div class="tab-pane" id="pane-text">
+        <label for="incidentText">Crisis report (any language / dialect):</label>
+        <textarea id="incidentText" rows="5" placeholder="Paste the unstructured crisis input here… (e.g. dialect voice transcript, chaotic text report)"></textarea>
+      </div>
+
+      <div class="tab-pane hidden" id="pane-audio">
+        <label for="audioFile">Upload a voice note (MP3/WAV/OGG):</label>
+        <input type="file" id="audioFile" accept="audio/*" />
+        <div class="recorder-row">
+          <button id="recordBtn" type="button" class="btn ghost">🎙️ Record Now</button>
+          <span id="recTimer" class="muted hidden">0:00</span>
+        </div>
+        <audio id="audioPlayback" controls class="hidden"></audio>
+      </div>
+
+      <div class="tab-pane hidden" id="pane-drone">
+        <label for="droneImage">Upload drone/satellite image:</label>
+        <input type="file" id="droneImage" accept="image/*" />
+        <label for="droneUrl">…or paste an image URL:</label>
+        <input type="url" id="droneUrl" placeholder="https://example.com/aerial.jpg" />
+      </div>
+
+      <div class="tab-pane hidden" id="pane-medical">
+        <label for="medicalImage">Upload injury / medical photo:</label>
+        <input type="file" id="medicalImage" accept="image/*" />
+        <label for="medicalText">Optional description of injuries:</label>
+        <textarea id="medicalText" rows="3" placeholder="Describe visible injuries or symptoms (any language)"></textarea>
+      </div>
+
+      <div class="row actions">
+        <span id="locationLabel" class="muted">📍 Auto-detected: —</span>
+        <button id="sendBtn" class="btn primary" type="button">🚨 Analyze &amp; Dispatch</button>
+      </div>
+
+      <div id="intakeResult"></div>
+    </section>
+
+    <section class="panel dispatch">
+      <div class="panel-head">
+        <h2>🗺️ Grid &amp; Sector Matrix</h2>
+        <button id="refreshSectorsBtn" class="btn ghost small" type="button">🔄 Refresh</button>
+      </div>
+      <p class="hazard-context muted">Live sector intelligence — incidents and hazards color-code each zone (highest triage level wins). Display only.</p>
+      <div id="sectorGrid" class="sector-grid">
+        <div class="empty-state">Loading sector matrix…</div>
+      </div>
+      <h3 id="gridResultTitle" class="head-spaced">📡 Nearby Reports &amp; Hazard Watch</h3>
+      <div id="gridResult">
+        <div class="empty-state">No reports or hazards registered yet.</div>
+      </div>
+
+      <div class="panel-head head-spaced">
+        <h2>🚑 Live Incident Reports</h2>
+        <div class="head-actions">
+          <button id="seedDemoBtn" class="btn primary small" type="button">🧪 Seed 3 Demo Incidents</button>
+          <button id="runScamScan" class="btn ghost small" type="button">🕵️ Run AI Sybil Scan</button>
+        </div>
+      </div>
+
+      <div id="scamResult"></div>
+      <div id="dispatchBoard" class="board">
+        <div class="empty-state">No incidents yet. Submit a report to begin.</div>
+      </div>
+      <div class="legend">
+        <span class="badge red">RED — Critical</span>
+        <span class="badge yellow">YELLOW — Urgent / Review</span>
+        <span class="badge green">GREEN — Minor / Verified Genuine</span>
+        <span class="badge scam">⚠️ FLAGGED SCAM</span>
+        <span class="legend-note">Sector chips (A1–D4) map incidents onto the grid; out-of-area places resolve to 🗺️ EXT · External Regional Zone. Report cards below are display-only.</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
