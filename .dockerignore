@@ -1,0 +1,13 @@
+# Keep secrets, local envs, and heavy local artifacts out of the image.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.git/
+.gitignore
+.env
+.env.*
+*.wav
+*.mp4
+*.png
+*.log
