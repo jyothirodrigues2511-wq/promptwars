@@ -1,0 +1,8 @@
+{
+  "httpMethod": "POST",
+  "path": "/parse",
+  "headers": { "Content-Type": "application/json" },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "body": "{\"query\": \"where can I photocopy under 5 rupees within 500 m\"}"
+}

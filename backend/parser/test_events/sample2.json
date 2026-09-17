@@ -1,0 +1,8 @@
+{
+  "httpMethod": "POST",
+  "path": "/parse",
+  "headers": { "Content-Type": "application/json" },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "body": "{\"query\": \"print shop within 1km\"}"
+}
