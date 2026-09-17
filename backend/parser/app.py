@@ -38,8 +38,6 @@ SORTS = ("cheapest", "nearest", "rating")
 
 DEFAULT_RADIUS_KM = 2.0
 
-STRINGS = (str, bytes)
-
 try:  # pydantic is a strands dependency; guard anyway for the fallback path
     from pydantic import BaseModel, Field
 except Exception:  # pragma: no cover - pydantic ships with strands-agents
@@ -224,6 +222,10 @@ _PRICE_RE = re.compile(
     re.IGNORECASE,
 )
 _PRICE_RS_RE = re.compile(r"(?:rs\.?|rupees|inr|\u20b9)\s*(\d+)", re.IGNORECASE)
+_DIST_AFTER_RE = re.compile(
+    r"\s*(?:kms?|kilometers?|kilometres?|metres?|meters?|m)\b",
+    re.IGNORECASE,
+)
 _CHEAP_RE = re.compile(
     r"\b(cheap|cheapest|budget|affordable|inexpensive|cheaper|low cost|"
     r"value for money)\b",
@@ -263,7 +265,8 @@ def _heuristic_parse(query: str) -> dict[str, Any]:
 
     for rx in (_PRICE_RE, _PRICE_RS_RE):
         m = rx.search(text)
-        if m:
+        # "under 5 km" is a distance, not a price — skip when a unit follows.
+        if m and not _DIST_AFTER_RE.match(m.string, m.end(1)):
             max_price = int(m.group(1))
             break
 
@@ -394,6 +397,8 @@ def _respond(status_code: int, payload: dict[str, Any]) -> dict[str, Any]:
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """API Gateway handler for POST /parse."""
     try:
+        if (event.get("httpMethod") or "POST").upper() == "OPTIONS":
+            return _respond(200, {})  # CORS preflight
         payload = _read_body(event)
         query = str(payload.get("query") or "").strip()
         if not query:
