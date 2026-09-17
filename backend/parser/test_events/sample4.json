@@ -1,0 +1,8 @@
+{
+  "httpMethod": "POST",
+  "path": "/parse",
+  "headers": { "Content-Type": "application/json" },
+  "queryStringParameters": null,
+  "pathParameters": null,
+  "body": "{\"query\": \"cheap PG under 5000 per month\"}"
+}
